@@ -1,0 +1,8 @@
+/* .leaflet-tile {
+  image-rendering: pixelated !important;
+  transform: scale(1.05);
+  transform-origin: top left;
+  border: none !important;
+} */
+/* .leaflet-tile { border: solid rgb(0, 0, 0,0.6) 0.1px; } */
+.leaflet-tile { border: none !important; }

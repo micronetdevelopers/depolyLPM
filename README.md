@@ -1,1 +1,1 @@
-# depolyLPM
+[text](../../Geoserver-Install-with-jre/how_to_host_geoserver_ip_to_system.md)GeoServer
