@@ -1,0 +1,137 @@
+# File: .github/workflows/ci.yml
+name: Vite Build & Deploy (LAN GeoServer)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+###############################################################################
+# 1️⃣  Build & test on your LAN‑runner (GeoServer reachable at 192.168.1.139) #
+###############################################################################
+jobs:
+  build:
+    name: Build on self‑hosted runner
+    runs-on: [self-hosted, lan-runner]   # ← match the label(s) you set up
+    env:
+      # Expose your in‑house GeoServer URL to Vite & tests
+      VITE_GEOSERVER_BASE_URL: http://192.168.1.139:8080/geoserver
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node 18.18.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.18.0
+          cache: npm           # npm cache for faster installs
+
+      - run: npm ci            # install deps
+      - run: npm run build     # Vite build → dist/
+      - run: npm test --if-present
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-dist
+          path: dist           # everything inside dist/ → zipped & stored
+
+###############################################################################
+# 2️⃣  Deploy the built site to GitHub Pages (runs on a normal cloud runner)   #
+###############################################################################
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main'   # only pushes (not PRs) to main
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vite-dist
+          path: dist
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - uses: actions/deploy-pages@v4
+
+
+
+
+
+
+
+
+
+
+
+# name: Vite Build and Deploy
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     services:
+#       geoserver:
+#         image: kartoza/geoserver:2.23.4
+#         ports:
+#           - 8080:8080
+#         options: >-
+#           --health-cmd "curl -fs http://localhost:8080/geoserver/web/ || exit 1"
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 10
+
+#     env:
+#       VITE_GEOSERVER_BASE_URL: http://localhost:8080/geoserver
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js 18.18.0
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 18.18.0
+#           cache: npm
+
+#       - run: npm ci
+#       - run: npm run build
+#       - run: npm test --if-present
+
+#       - name: Upload build artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: vite-dist
+#           path: dist
+
+#   deploy:
+#     if: github.ref == 'refs/heads/main'
+#     needs: build
+#     runs-on: ubuntu-latest
+#     permissions:
+#       pages: write
+#       id-token: write
+
+#     steps:
+#       - uses: actions/download-artifact@v4
+#         with:
+#           name: vite-dist
+#           path: dist
+
+#       - uses: actions/upload-pages-artifact@v3
+#         with:
+#           path: dist
+
+#       - uses: actions/deploy-pages@v4
